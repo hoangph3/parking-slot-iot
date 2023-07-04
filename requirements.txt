@@ -1,0 +1,16 @@
+numpy==1.23.1
+requests==2.27.1
+Flask==2.0.3
+Werkzeug==2.0.3
+faiss-cpu==1.7.2
+redis==3.5.3
+tqdm==4.46.0
+pymongo==4.1.1
+flask-cors==3.0.10
+pyOpenSSL==22.1.0
+Flask-SocketIO==4.3.1
+python-socketio==4.6.0
+python-engineio==3.13.2
+eventlet==0.33.1
+dnspython==2.2.1
+Pillow==9.5.0
