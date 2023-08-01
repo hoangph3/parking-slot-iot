@@ -1,0 +1,54 @@
+version: '3.5'
+
+services:
+  api:
+    container_name: parking_api
+    image: hoangph3/parking-slot:1.0.0
+    volumes:
+       - ./env/prod.json:/app/env/prod.json
+       - ./static/js:/app/static/js
+    ports:
+      - "8008:8008"
+    network_mode: host
+    restart: always
+
+  producer:
+    container_name: parking_producer
+    image: hoangph3/parking-slot:1.0.0
+    volumes:
+       - ./env/prod.json:/app/env/prod.json
+    network_mode: host
+    command: ["python3", "producer.py"]
+    restart: always
+
+  consumer:
+    container_name: parking_consumer
+    image: hoangph3/parking-slot:1.0.0
+    volumes:
+       - ./env/prod.json:/app/env/prod.json
+    network_mode: host
+    command: ["python3", "consumer.py"]
+    restart: always
+
+  postgres:
+    container_name: parking_psqldb
+    image: postgres:14.0
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: Kotora123
+      POSTGRES_DB: kotora
+      PGDATA: /data/postgres
+    # volumes:
+    #    - ./postgres:/data/postgres
+    ports:
+      - "5432:5432"
+    network_mode: host
+    restart: always
+
+  redis:
+    container_name: parking_queue
+    image: redis:7.0.4
+    ports:
+      - "6379:6379"
+    network_mode: host
+    restart: always

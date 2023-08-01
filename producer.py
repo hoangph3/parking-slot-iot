@@ -1,9 +1,11 @@
 #! /usr/bin/env python
 from PyQt5.QtWidgets import *
-from PyQt5.QtCore import QThread
+from PyQt5.QtCore import QThread, QCoreApplication
 import socket, sys
 from time import sleep
 import random
+from keeper.environments import SystemEnv
+from loguru import logger
 
 
 class SendUDP(QThread):
@@ -36,18 +38,18 @@ class SendUDP(QThread):
             # Đóng gói msg_feedback: "@ID:State"
             msg = "@{0}:{1}"
             msg_feedback = msg.format(self.ID,self.state)
-            print(msg_feedback)
+            logger.info("Send: {}".format(msg_feedback))
             # Gửi dữ liệu đi
             self.send_socket.sendto(msg_feedback.encode(),self.remote_UDP_address)
-            sleep(5)  # Time delay between 2 consecutive sends
+            sleep(2)  # Time delay between 2 consecutive sends
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
+    app = QCoreApplication(sys.argv)
     # Tạo các thread giả lập thiết bị IoT với từng ID riêng
     # Chú ý, gán địa chỉ cổng cần giống với ID của IoT cho dễ quản lý,
-    Host_IP = "127.0.0.1"
-    N = 100
+    N = SystemEnv.num_slots
     List_IoT = []
+    Host_IP = SystemEnv.api_host
     # Tạo ra N thiết bị IoT ảo
     for k in range(N):
         address = '{0}:{1}'

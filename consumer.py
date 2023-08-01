@@ -1,8 +1,10 @@
 #! /usr/bin/env python
 from PyQt5.QtWidgets import *
-from PyQt5.QtCore import QThread
+from PyQt5.QtCore import QThread, QCoreApplication
 import socket, sys
-import redis
+from keeper.connections import DBConnector
+from keeper.environments import SystemEnv
+from loguru import logger
 
 
 class ReceiveUDP(QThread):
@@ -17,32 +19,34 @@ class ReceiveUDP(QThread):
         self.local_socket = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
         address = self.local_address.split(':')
         self.local_socket.bind((address[0],int(address[1])))
-        self.redis_conn = redis.Redis("127.0.0.1", 6379, 0)
+        self.redis_conn = DBConnector.redis_connection
 
     def run(self):
         while True:
             msg_master, add = self.local_socket.recvfrom(1024)
             if msg_master:
                 # Chuyển chuỗi ký tự nhận được sang dạng str
-                msg = msg_master.decode('utf‐8')
+                msg = msg_master.decode('utf-8')
                 # Tách trường dữ liệu @ID:state, lấy ID và state
                 msg_decode = msg.replace('@','').split(':')
                 ID = int(msg_decode[0])
                 state = int(msg_decode[1])
                 # In kết quả nhận được
                 # ID và state sẽ được sử dụng để hiển thị trạng thái trên bản đồ bố trí chỗ để xe
-                self.redis_conn.set(f"G{ID}", state)
+                self.redis_conn.set(ID, state)
+                logger.info("Receive: {}".format(msg))
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
+    app = QCoreApplication(sys.argv)
     # Tạo các thread nhận dữ liệu phản hồi từ các thiết bị IoT
-    N = 100
-    Host_IP = "127.0.0.1"
+    N = SystemEnv.num_slots
     List_IoT = []
+    Host_IP = SystemEnv.api_host
     # Tao ra các thread quản lý N thiết bị IoT
     for k in range(N):
         address = '{0}:{1}'
-        Port = 1001+k
+        ID = k+1
+        Port = 1000+ID
         udp_address = address.format(Host_IP,Port)
         IoT = ReceiveUDP(udp_address)
         List_IoT.append(IoT)
